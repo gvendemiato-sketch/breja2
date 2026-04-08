@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍺 Contador de Cervejas</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f6f6f6;
+  padding: 20px;
+}
+
+/* ===== HISTÓRICO SOCIAL ===== */
+.social-history {
+  position: sticky;
+  left: 15px;
+  top: 20px;
+  width: 260px;
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.1);
+}
+
+.social-history h3 {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.social-history ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+}
+
+.social-history li {
+  margin-bottom: 6px;
+  border-bottom: 1px dashed #eee;
+  padding-bottom: 4px;
+}
+
+/* ===== CONTEÚDO ===== */
+h1, h2 { text-align: center; }
+
+.card {
+  max-width: 400px;
+  margin: 20px auto;
+  background: white;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.08);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #eee;
+}
+
+/* ===== MELHORIA: feedback visual nos botões ===== */
+button {
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.1s;
+}
+
+button:active {
+  transform: scale(0.92);
+  background: #ddd;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progress-wrapper {
+  max-width: 420px;
+  margin: 30px auto;
+  text-align: center;
+}
+
+.progress-track {
+  position: relative;
+  height: 28px;
+  background: linear-gradient(
+    90deg,
+    #d32f2f 0%,
+    #ff6f00 30%,
+    #ffeb3b 60%,
+    #00c853 100%
+  );
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+#runner {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+}
+
+.meta-text {
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+.chart-wrapper {
+  max-width: 320px;
+  margin: 20px auto;
+}
+
+/* ===== ANIMAÇÕES ===== */
+@keyframes beer-bounce {
+  0% { transform: translateY(-50%) scale(1); }
+  40% { transform: translateY(-60%) scale(1.05); }
+  100% { transform: translateY(-50%) scale(1); }
+}
+.beer-animate { animation: beer-bounce .35s ease; }
+
+@keyframes beer-win {
+  0% { transform: translateY(-50%) scale(1); }
+  50% { transform: translateY(-50%) scale(1.3); }
+  100% { transform: translateY(-50%) scale(1.1); }
+}
+.beer-win { animation: beer-win .6s ease forwards; }
+
+/* ===== LAYOUT BASE (DESKTOP E MOBILE) ===== */
+.layout {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .social-history {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 30px;
+  }
+
+  .layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    flex-direction: column;
+  }
+}
+
+.main-content {
+  max-width: 420px;
+  width: 100%;
+}
+
+/* ===== CONTADOR SEMANAL ===== */
+.weekly-card {
+  max-width: 320px;
+  margin: 25px auto 10px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.weekly-card h3 {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: #444;
+}
+
+.weekly-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+  border-bottom: 1px dashed #eee;
+}
+
+.weekly-row:last-child {
+  border-bottom: none;
+}
+
+.weekly-row span:last-child {
+  font-weight: bold;
+  color: #222;
+}
+
+/* ===== PLACAR DE LIDERANÇA HISTÓRICA ===== */
+.weeks-led-card {
+  max-width: 320px;
+  margin: 10px auto 25px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.weeks-led-card h3 {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: #444;
+}
+
+.weeks-led-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+  border-bottom: 1px dashed #eee;
+}
+
+.weeks-led-row:last-child {
+  border-bottom: none;
+}
+
+.weeks-led-row span:last-child {
+  font-weight: bold;
+  color: #222;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🍺 Contador de Cervejas – 2026</h1>
+
+<div class="layout">
+
+  <!-- HISTÓRICO SOCIAL -->
+  <div class="social-history">
+    <h3>📜 Histórico</h3>
+    <ul id="social-log"></ul>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main-content">
+
+    <div class="card">
+      <div class="row">
+        <span id="label-jaime">Jaime</span>
+        <span id="jaime">0</span>
+        <button id="btn-remove-jaime" onclick="removeBeer('jaime')">-0,5</button>
+        <button id="btn-add-jaime" onclick="addBeer('jaime')">+0,5</button>
+      </div>
+
+      <div class="row">
+        <span id="label-cux">Cux</span>
+        <span id="cux">0</span>
+        <button id="btn-remove-cux" onclick="removeBeer('cux')">-0,5</button>
+        <button id="btn-add-cux" onclick="addBeer('cux')">+0,5</button>
+      </div>
+
+      <div class="row">
+        <span id="label-celula">Célula</span>
+        <span id="celula">0</span>
+        <button id="btn-remove-celula" onclick="removeBeer('celula')">-0,5</button>
+        <button id="btn-add-celula" onclick="addBeer('celula')">+0,5</button>
+      </div>
+    </div>
+
+    <h2>Total do grupo: <span id="total">0</span> 🍺</h2>
+
+    <div class="progress-wrapper">
+      <div>🏁 31/12/2026</div>
+      <div class="progress-track">
+        <div id="runner">🍺</div>
+      </div>
+      <div id="meta-text" class="meta-text"></div>
+    </div>
+
+    <div class="chart-wrapper">
+      <canvas id="beerChart"></canvas>
+    </div>
+
+    <!-- ===== CONTADOR SEMANAL ===== -->
+    <div class="weekly-card">
+      <h3 id="week-title">📅 Consumo da Semana (Seg → Dom)</h3>
+
+      <div class="weekly-row">
+        <span>Jaime</span>
+        <span id="week-jaime">0.0</span>
+      </div>
+
+      <div class="weekly-row">
+        <span>Cux</span>
+        <span id="week-cux">0.0</span>
+      </div>
+
+      <div class="weekly-row">
+        <span>Célula</span>
+        <span id="week-celula">0.0</span>
+      </div>
+    </div>
+
+    <!-- ===== PLACAR DE LIDERANÇA HISTÓRICA ===== -->
+    <div class="weeks-led-card">
+      <h3>🏆 Semanas na Liderança</h3>
+
+      <div class="weeks-led-row">
+        <span>Jaime</span>
+        <span id="led-jaime">0</span>
+      </div>
+
+      <div class="weeks-led-row">
+        <span>Cux</span>
+        <span id="led-cux">0</span>
+      </div>
+
+      <div class="weeks-led-row">
+        <span>Célula</span>
+        <span id="led-celula">0</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+
+<!-- Firebase + Chart -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCvkFXm8Gbs7WHc32OS7_W6t1b8GyBi0IA",
+  authDomain: "breja-2.firebaseapp.com",
+  projectId: "breja-2",
+  storageBucket: "breja-2.firebasestorage.app",
+  messagingSenderId: "215227002183",
+  appId: "1:215227002183:web:c76ab2871d56c7a1393062"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const docRef = db.collection("grupos").doc("cerveja_2026");
+
+/* ===== SEMANA ATUAL ===== */
+async function garantirSemanaAtual() {
+  const snap = await docRef.get();
+  const data = snap.data();
+  const monday = getMonday();
+
+  if (!data.week || data.week.start !== monday) {
+    // Ao virar semana, registra o líder da semana anterior antes de resetar
+    if (data.week && data.weeksLed !== undefined) {
+      const prev = [
+        { n: "jaime",  v: data.week.jaime  },
+        { n: "cux",    v: data.week.cux    },
+        { n: "celula", v: data.week.celula }
+      ].sort((a, b) => b.v - a.v);
+
+      if (prev[0].v > 0 && prev[0].v !== prev[1].v) {
+        await docRef.update({
+          [`weeksLed.${prev[0].n}`]: firebase.firestore.FieldValue.increment(1)
+        });
+      }
+    }
+
+    await docRef.update({
+      week: {
+        start: monday,
+        jaime: 0,
+        cux: 0,
+        celula: 0
+      }
+    });
+  }
+}
+garantirSemanaAtual();
+
+/* ===== HISTÓRICO ===== */
+let historico = [];
+let ultimoLider = null;
+let metasBatidas = new Set();
+let estadoAnterior = null;
+
+function logEvento(texto) {
+  historico.unshift("🍺 " + texto);
+  if (historico.length > 10) historico.pop();
+  document.getElementById("social-log").innerHTML =
+    historico.map(e => `<li>${e}</li>`).join("");
+}
+
+function getMonday(date = new Date()) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().slice(0, 10);
+}
+
+docRef.onSnapshot(doc => {
+  const d = doc.data();
+  const total = d.jaime + d.cux + d.celula;
+
+  ["jaime", "cux", "celula"].forEach(n => document.getElementById(n).innerText = d[n]);
+  document.getElementById("total").innerText = total.toFixed(1);
+
+  atualizarRanking(d);
+  atualizarCorrida(total);
+  atualizarTextoMeta(total);
+  atualizarHistorico(d, total);
+
+  beerChart.data.datasets[0].data = [d.jaime, d.cux, d.celula];
+  beerChart.update();
+
+  // Semana atual
+  if (d.week) {
+    document.getElementById("week-jaime").innerText = d.week.jaime.toFixed(1);
+    document.getElementById("week-cux").innerText = d.week.cux.toFixed(1);
+    document.getElementById("week-celula").innerText = d.week.celula.toFixed(1);
+
+    // Mostrar intervalo da semana no título
+    const inicio = new Date(d.week.start + "T00:00:00");
+    const fim = new Date(inicio);
+    fim.setDate(fim.getDate() + 6);
+    const fmt = dt => dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    document.getElementById("week-title").innerText =
+      `📅 Semana ${fmt(inicio)} → ${fmt(fim)}`;
+  }
+
+  // Placar de liderança histórica
+  if (d.weeksLed) {
+    document.getElementById("led-jaime").innerText  = d.weeksLed.jaime  ?? 0;
+    document.getElementById("led-cux").innerText    = d.weeksLed.cux    ?? 0;
+    document.getElementById("led-celula").innerText = d.weeksLed.celula ?? 0;
+  }
+});
+
+function atualizarHistorico(d, total) {
+  const agora = { jaime: d.jaime, cux: d.cux, celula: d.celula, total };
+
+  // Só processa se algo realmente mudou
+  if (estadoAnterior && JSON.stringify(agora) === JSON.stringify(estadoAnterior)) return;
+  estadoAnterior = agora;
+
+  const arr = [
+    { n: "Jaime",  v: d.jaime  },
+    { n: "Cux",    v: d.cux    },
+    { n: "Célula", v: d.celula }
+  ].sort((a, b) => b.v - a.v);
+
+  if (arr[0].v !== arr[1].v && arr[0].n !== ultimoLider) {
+    logEvento(`${arr[0].n} virou líder 🥇`);
+    ultimoLider = arr[0].n;
+  }
+
+  if (arr[0].v === arr[1].v) {
+    logEvento("Empate detectado 🤝");
+  }
+
+  [250, 500, 750, 950, 1000].forEach(m => {
+    if (total >= m && !metasBatidas.has(m)) {
+      logEvento(`O time chegou à marca de ${m} 🍻`);
+      metasBatidas.add(m);
+    }
+  });
+}
+
+/* ===== RANKING ===== */
+function atualizarRanking(d) {
+  const p = [
+    { n: "jaime",  v: d.jaime  },
+    { n: "cux",    v: d.cux    },
+    { n: "celula", v: d.celula }
+  ].sort((a, b) => b.v - a.v);
+
+  const vals = p.map(x => x.v);
+  const uniq = new Set(vals);
+
+  const set = (x, e) => document.getElementById("label-" + x.n).innerText =
+    `${e} ${x.n[0].toUpperCase() + x.n.slice(1)}`;
+
+  if (uniq.size === 1) { p.forEach(x => set(x, "🍻")); return; }
+  if (uniq.size === 2) {
+    if (p[0].v === p[1].v) { set(p[0], "🤝"); set(p[1], "🤝"); set(p[2], "🐢"); return; }
+  }
+  set(p[0], "🥇"); set(p[1], "👽"); set(p[2], "🐢");
+}
+
+/* ===== PROGRESSO ===== */
+function atualizarCorrida(total) {
+  const perc = Math.min(total / 1000 * 100, 100);
+  const r = document.getElementById("runner");
+  r.style.right = `calc(${100 - perc}% - 12px)`;
+  r.classList.remove("beer-animate");
+  void r.offsetWidth;
+  r.classList.add("beer-animate");
+}
+
+function atualizarTextoMeta(total) {
+  const r = document.getElementById("meta-text");
+  if (total >= 1000) {
+    r.innerText = "🎉 META ATINGIDA! 1000 BRATCHOLAS 🍻🔥";
+    document.getElementById("runner").classList.add("beer-win");
+  } else {
+    r.innerText = `⏳ Faltam ${(1000 - total).toFixed(1)} bratcholas`;
+  }
+}
+
+/* ===== BOTÕES COM DEBOUNCE ===== */
+const bloqueado = { jaime: false, cux: false, celula: false };
+
+function setDebounce(n) {
+  bloqueado[n] = true;
+  document.getElementById(`btn-add-${n}`).disabled = true;
+  document.getElementById(`btn-remove-${n}`).disabled = true;
+  setTimeout(() => {
+    bloqueado[n] = false;
+    document.getElementById(`btn-add-${n}`).disabled = false;
+    document.getElementById(`btn-remove-${n}`).disabled = false;
+  }, 600);
+}
+
+function addBeer(n) {
+  if (bloqueado[n]) return;
+  setDebounce(n);
+  docRef.update({
+    [n]: firebase.firestore.FieldValue.increment(0.5),
+    [`week.${n}`]: firebase.firestore.FieldValue.increment(0.5)
+  });
+}
+
+function removeBeer(n) {
+  if (bloqueado[n]) return;
+  setDebounce(n);
+  db.runTransaction(async tx => {
+    const doc = await tx.get(docRef);
+    const data = doc.data();
+    if (data[n] >= 0.5 && data.week[n] >= 0.5) {
+      tx.update(docRef, {
+        [n]: firebase.firestore.FieldValue.increment(-0.5),
+        [`week.${n}`]: firebase.firestore.FieldValue.increment(-0.5)
+      });
+    }
+  }).catch(err => console.error("Erro na transação:", err));
+}
+
+/* ===== GRÁFICO ===== */
+const beerChart = new Chart(document.getElementById("beerChart"), {
+  type: "pie",
+  data: {
+    labels: ["Jaime", "Cux", "Célula"],
+    datasets: [{ data: [1, 1, 1], backgroundColor: ["#81c784", "#fff176", "#ffb74d"] }]
+  }
+});
+</script>
+
+</body>
+</html>
